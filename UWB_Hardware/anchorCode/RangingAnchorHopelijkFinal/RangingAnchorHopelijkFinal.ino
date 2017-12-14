@@ -47,7 +47,7 @@ const uint8_t PIN_SS = SS; // spi select pin
 
 float otherDistance;
 String messageName[] = {"poll", "poll_ack", "range", "range_rapport", "blink", "ranging_init", "error"};
-byte address[2] = {0xFF, 0xF0};
+byte address[2] = {0xFF, 0xF1};
 // message flow state
 volatile byte expectedMsgId = POLL;
 // message sent/received state
@@ -79,31 +79,37 @@ float samplingRate = 0;
 boolean debug = false;
 void setup() {
   // DEBUG monitoring
-  Serial.begin(115200);
-  delay(1000);
-  Serial.println(F("### DW1000-arduino-ranging-anchor ###"));
+  
+    Serial.begin(115200);
+  
+  
+  
   // initialize the driver
   DW1000.begin(PIN_IRQ, PIN_RST);
   DW1000.select(PIN_SS);
-  Serial.println(F("DW1000 initialized ..."));
   // general configuration
   DW1000.newConfiguration();
   DW1000.setDefaults();
   DW1000.setDeviceAddress(1);
   DW1000.setNetworkId(10);
-  DW1000.enableMode(DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
+  DW1000.enableMode(DW1000.MODE_LONGDATA_RANGE_ACCURACY);
   DW1000.commitConfiguration();
-  Serial.println(F("Committed configuration ..."));
-  // DEBUG chip info and registers pretty printed
-  char msg[128];
-  DW1000.getPrintableDeviceIdentifier(msg);
-  Serial.print("Device ID: "); Serial.println(msg);
-  DW1000.getPrintableExtendedUniqueIdentifier(msg);
-  Serial.print("Unique ID: "); Serial.println(msg);
-  DW1000.getPrintableNetworkIdAndShortAddress(msg);
-  Serial.print("Network ID & Device Address: "); Serial.println(msg);
-  DW1000.getPrintableDeviceMode(msg);
-  Serial.print("Device mode: "); Serial.println(msg);
+  if(debug)
+  {
+    Serial.println(F("### DW1000-arduino-ranging-anchor ###"));
+    delay(1000);
+    Serial.println(F("Committed configuration ..."));
+    // DEBUG chip info and registers pretty printed
+    char msg[128];
+    DW1000.getPrintableDeviceIdentifier(msg);
+    Serial.print("Device ID: "); Serial.println(msg);
+    DW1000.getPrintableExtendedUniqueIdentifier(msg);
+    Serial.print("Unique ID: "); Serial.println(msg);
+    DW1000.getPrintableNetworkIdAndShortAddress(msg);
+    Serial.print("Network ID & Device Address: "); Serial.println(msg);
+    DW1000.getPrintableDeviceMode(msg);
+    Serial.print("Device mode: "); Serial.println(msg);
+  }
   // attach callback for (successfully) sent and received messages
   DW1000.attachSentHandler(handleSent);
   DW1000.attachReceivedHandler(handleReceived);
@@ -112,7 +118,7 @@ void setup() {
   noteActivity();
   // for first time ranging frequency computation
   rangingCountPeriod = millis();
-
+ 
 }
 
 void noteActivity() {
@@ -261,9 +267,9 @@ void loop() {
     if (msgId == POLL) {
       // on POLL we (re-)start, so no protocol failure
       memcpy(&otherDistance, data + 5, 4);
-      Serial.print("{\"anchor\":\"FFF1\",\"tag\":\"AAA0\",\"distance\":\"");
+      /*Serial.print("{\"anchor\":\"FFF1\",\"tag\":\"AAA0\",\"distance\":\"");
         Serial.print(otherDistance);
-        Serial.println("\"}");
+        Serial.println("\"}");*/
       
       protocolFailed = false;
       DW1000.getReceiveTimestamp(timePollReceived);
@@ -284,16 +290,23 @@ void loop() {
         //transmitRangeReport(timeComputedRange.getAsMicroSeconds());
         transmitRangeReport(timeComputedRange.getAsMeters());
         float distance = timeComputedRange.getAsMeters();
-        /*Serial.print("Range: "); Serial.print(distance); Serial.print(" m");
+       /* Serial.print("Range: "); Serial.print(distance); Serial.print(" m");
         Serial.print("  otherrange:"); Serial.print(otherDistance); Serial.print(" m");
         Serial.print("\t RX power: "); Serial.print(DW1000.getReceivePower()); Serial.print(" dBm");
         Serial.print("\t Sampling: "); Serial.print(samplingRate); Serial.println(" Hz");
         //Serial.print("FP power is [dBm]: "); Serial.print(DW1000.getFirstPathPower());
         //Serial.print("RX power is [dBm]: "); Serial.println(DW1000.getReceivePower());
-        //Serial.print("Receive quality: "); Serial.println(DW1000.getReceiveQuality());*/
-        Serial.print("{\"anchor\":\"FFF0\",\"tag\":\"AAA0\",\"distance\":\"");
-         Serial.print(distance);
-        Serial.println("\"}");
+        //Serial.print("Receive quality: "); Serial.println(DW1000.getReceiveQuality());
+        */
+        Serial.print("{");
+        Serial.print("\"anchor\":\"FFF0\",\"tag\":\"AAA0\",\"distance\":\"");
+         Serial.print(distance-0.45);
+         Serial.print("\",");
+          Serial.print("\"anchor2\":\"FFF1\",\"tag2\":\"AAA0\",\"distance2\":\"");
+         Serial.print(otherDistance-0.50);
+        Serial.println("\" }");
+        
+        
        
 
         

@@ -78,7 +78,7 @@ void setup() {
   DW1000.setDefaults();
   DW1000.setDeviceAddress(2);
   DW1000.setNetworkId(10);
-  DW1000.enableMode(DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
+  DW1000.enableMode(DW1000.MODE_LONGDATA_RANGE_ACCURACY);
   DW1000.commitConfiguration();
   Serial.println(F("Committed configuration ..."));
   // DEBUG chip info and registers pretty printed
@@ -176,7 +176,7 @@ void loop() {
     }
     if (rangeDone)
     {
-      delay(250-(millis() - lastTime));
+      delay(500);
       pollNext();
     }
 
@@ -217,6 +217,7 @@ void loop() {
       distances[destinationAdress] = curRange;
       Serial.print("   ");
       Serial.println(curRange);
+      Serial.print("\t RX power: "); Serial.print(DW1000.getReceivePower()); Serial.print(" dBm");
       rangeDone = true;
     } else if (msgId == RANGE_FAILED) {
       expectedMsgId = POLL_ACK;
