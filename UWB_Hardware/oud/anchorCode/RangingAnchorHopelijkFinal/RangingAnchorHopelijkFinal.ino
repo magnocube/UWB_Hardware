@@ -1,33 +1,3 @@
-/*
-   Copyright (c) 2015 by Thomas Trojer <thomas@trojer.net>
-   Decawave DW1000 library for arduino.
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-   @file RangingAnchor.ino
-   Use this to test two-way ranging functionality with two
-   DW1000. This is the anchor component's code which computes range after
-   exchanging some messages. Addressing and frame filtering is currently done
-   in a custom way, as no MAC features are implemented yet.
-
-   Complements the "RangingTag" example sketch.
-
-   @todo
-    - weighted average of ranging results based on signal quality
-    - use enum instead of define
-    - move strings to flash (less RAM consumption)
-*/
-
 #include <SPI.h>
 #include <DW1000.h>
 
@@ -76,7 +46,7 @@ uint16_t replyDelayTimeUS = 3000;
 uint16_t successRangingCount = 0;
 uint32_t rangingCountPeriod = 0;
 float samplingRate = 0;
-boolean debug = false;
+boolean debug = true;
 void setup() {
   // DEBUG monitoring
   
@@ -276,7 +246,6 @@ void loop() {
       expectedMsgId = RANGE;
       transmitPollAck();
       noteActivity();
-
     }
     else if (msgId == RANGE) {
       DW1000.getReceiveTimestamp(timeRangeReceived);

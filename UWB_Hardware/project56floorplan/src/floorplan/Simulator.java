@@ -9,24 +9,28 @@ import java.awt.event.KeyEvent;
  */
 public class Simulator{
     public Floorplan floorplan;
+    private UWBConfiguration uwbConfiguration;
+    private UWBUtils uwbUtils;
     private boolean isOn;
     private Point location;
-    SimulatorThread thread;
-    public Simulator(Floorplan floorplan)
+    private SimulatorThread thread;
+    public Simulator(Floorplan floorplan, UWBConfiguration uwbConfiguration,UWBUtils uwbUtils)
     {
+        this.uwbConfiguration=uwbConfiguration;
         this.floorplan=floorplan;
+        this.uwbUtils=uwbUtils;
     }
     public boolean isOn() {
         return isOn;
     }
     public void startSimulator()
     {
-        if (floorplan.triangulation == null) {
-            floorplan.triangulation = new Triangulation(floorplan.uwbConfiguration);
+        if (uwbUtils.triangulation == null) {
+            uwbUtils.triangulation = new Triangulation(uwbConfiguration);
         }
         isOn=true;
         location=new Point(500,500);
-        thread = new SimulatorThread(this,location);
+        thread = new SimulatorThread(this,floorplan,uwbConfiguration,uwbUtils,location);
 
         if(thread.con.connect())
         {

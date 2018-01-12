@@ -14,9 +14,6 @@ public class ConfigConnection {
         BufferedInputStream bis = null;
         OutputStream os = null;
         Socket sock = null;
-        int current = 0;
-        FileOutputStream fos = null;
-        BufferedOutputStream bos = null;
         try {
             sock = new Socket(SERVER, SOCKET_PORT);
             System.out.println("Connecting...");
@@ -25,9 +22,6 @@ public class ConfigConnection {
 
             out.writeUTF("{\"command\":\"setConfiguration\"}\"");
             out.writeUTF(json);
-
-
-
         }
         catch(Exception e)
         {
@@ -40,7 +34,6 @@ public class ConfigConnection {
         BufferedInputStream bis = null;
         OutputStream os = null;
         Socket sock = null;
-        int current = 0;
         FileOutputStream fos = null;
         BufferedOutputStream bos = null;
         try {
@@ -62,7 +55,6 @@ public class ConfigConnection {
             os.flush();
             System.out.println("Done.");
             os.close();
-
         }
         catch(Exception e)
         {

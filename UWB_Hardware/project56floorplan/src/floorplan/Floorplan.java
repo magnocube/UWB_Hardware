@@ -19,23 +19,20 @@ import javax.swing.*;
 
 public class Floorplan extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
 
-
 	private JButton loadConfigButton;
 	private JButton configSaveButton;
 	public JCheckBox sendSerial;
-    public JCheckBox displaySerial;
+	public JCheckBox displaySerial;
     private JComboBox comList;
 
-	public Triangulation triangulation;
-    private JTextField comTextField;
 	private JButton startSerialButton;
 	private JButton simulatorButton;
-    private Simulator simulator= new Simulator(this);
+
 	private JTextArea jsonTextField;
 	private JButton jsonExportButton;
-	public JButton loadButton;
-	JTextField path;
-	JFrame frame;
+	private JButton loadButton;
+	public JTextField path;
+	private JFrame frame;
 
 	JList<String> anchorList;
 	public DefaultListModel anchorListItems;
@@ -53,15 +50,15 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
     private SerialThread serialThread;
 
 	public UWBConfiguration uwbConfiguration = new UWBConfiguration();
-	public String fileLocation="C:\\Users\\Rene Schouten\\Pictures\\project56\\";
+	public UWBUtils uwbUtils= new UWBUtils(uwbConfiguration,jsonTextField);
+	private Simulator simulator= new Simulator(this,uwbConfiguration,uwbUtils);
+	public String fileLocation="C:\\Users\\Rene Schouten\\Pictures\\";
 
 	public Floorplan(JFrame frame) {
 		this.frame = frame;
 
 
-
-
-		path = new JTextField(fileLocation+"room1.png");
+		path = new JTextField(fileLocation+"floor1.png");
 		path.setBounds(1100, 10, 500, 50);
 		path.setPreferredSize(new Dimension(200, 24));
 
@@ -72,7 +69,7 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 		add(path);
 		add(loadButton);
 
-        JLabel anchorsLabel = new JLabel("uwbConfiguration.anchors");
+        JLabel anchorsLabel = new JLabel("anchors");
         anchorsLabel.setBounds(1050, 40, 200, 100);
         add(anchorsLabel);
 
@@ -94,6 +91,7 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 		jsonTextField.setLineWrap(true);
 		jsonTextField.setBounds(1050,800,800,200);
 		add(jsonTextField);
+		uwbUtils.jsonTextField=jsonTextField;
 
 		jsonExportButton = new JButton("export config");
 		jsonExportButton.setBounds(1800, 20, 110, 30);
@@ -149,7 +147,6 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
         roomMaker.setSize(new Dimension(500,500));
         roomMaker.setVisible(false);
 
-
     }
 
 	public void findComPorts()
@@ -168,8 +165,6 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 		}
 
 	}
-
-
 	public void anchorEditCancel() {
         anchorPanel.editAnchorPanel.setVisible(false);
 		uwbConfiguration.anchors.get(anchorPanel.anchorEditingIndex).deselect();
@@ -209,7 +204,6 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 		repaint();
 		anchorList.revalidate();
 	}
-
 	public void openAnchorEdit(int index) {
 		Anchor anchor = uwbConfiguration.anchors.get(index);
         anchorPanel.anchorX.setText("" + (int) anchor.getLocation().getX());
@@ -251,8 +245,8 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 			loadImage(path.getText());
 		}
 		if(e.getSource() == jsonExportButton) {
-			calculateScale();
-			JsonCreator j = new JsonCreator(uwbConfiguration.anchors,uwbConfiguration.rooms, uwbConfiguration.scale,this);
+			uwbUtils.calculateScale();
+			JsonCreator j = new JsonCreator(uwbConfiguration,uwbUtils);
 			jsonTextField.setText(j.getJson());
 			ConfigConnection con = new ConfigConnection();
 			con.sendConfig(j.getJson());
@@ -261,8 +255,8 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 		}
 		if(e.getSource()==configSaveButton)
 		{
-			calculateScale();
-			JsonCreator j = new JsonCreator(uwbConfiguration.anchors,uwbConfiguration.rooms, uwbConfiguration.scale,this);
+			uwbUtils.calculateScale();
+			JsonCreator j = new JsonCreator(uwbConfiguration,uwbUtils);
 			jsonTextField.setText(j.getJson());
 			BufferedWriter writer = null;
 			try {
@@ -371,8 +365,8 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 			after = scaleOp.filter(before, after);
 			floorplan = after;
 		} catch (IOException e1) {
-			e1.printStackTrace();
-			consolePrint("image don't exist");
+			e1.getMessage();
+			uwbUtils.consolePrint("image don't exist");
 		}
 		repaint();
 
@@ -514,7 +508,7 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
 				counter++;
 			}
 		}
-		calculateScale();
+		uwbUtils.calculateScale();
 
 	}
 
@@ -661,18 +655,18 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
             g.setColor(Color.ORANGE);
             g.fillOval((int)simulator.getLocation().getX(),(int)simulator.getLocation().getY(),30, 30);
         }
-        if(triangulation!=null)
+        if(uwbUtils.triangulation!=null)
 		{
-        if(triangulation.tags.size()>0) {
-			if (triangulation.tags.get(0).getLocation() != null) {
-				double x = triangulation.tags.get(0).getLocation().getX();
-				double y = triangulation.tags.get(0).getLocation().getY();
+        if(uwbUtils.triangulation.tags.size()>0) {
+			if (uwbUtils.triangulation.tags.get(0).getLocation() != null) {
+				double x = uwbUtils.triangulation.tags.get(0).getLocation().getX();
+				double y = uwbUtils.triangulation.tags.get(0).getLocation().getY();
 				g.setColor(Color.cyan);
 				g.fillOval((int) x, (int) y, 30, 30);
-				for (int i = 0; i < triangulation.tags.get(0).potentialLocations.size(); i++) {
+				for (int i = 0; i < uwbUtils.triangulation.tags.get(0).potentialLocations.size(); i++) {
 					g.setColor(Color.pink);
-					x = triangulation.tags.get(0).potentialLocations.get(i).getLocation().getX();
-					y = triangulation.tags.get(0).potentialLocations.get(i).getLocation().getY();
+					x = uwbUtils.triangulation.tags.get(0).potentialLocations.get(i).getLocation().getX();
+					y = uwbUtils.triangulation.tags.get(0).potentialLocations.get(i).getLocation().getY();
 					g.fillOval((int) x, (int) y, 20, 20);
 				}
 			}
@@ -724,61 +718,5 @@ public class Floorplan extends JPanel implements ActionListener, MouseListener, 
         simulator.keyReleased(e);
     }
 
-    public void calculateScale()
-	{
-		uwbConfiguration.scale=0;
-		int masterIndex=-1;
-		for (int i = 0; i < uwbConfiguration.anchors.size(); i++) {
-			if (uwbConfiguration.anchors.get(i).isMaster()) {
-				masterIndex=i;
-			}
-		}
-		if(masterIndex==-1)
-		{
-			uwbConfiguration.scale=0;
-			return;
-		}
 
-
-
-		for (int i = 0; i < uwbConfiguration.anchors.size(); i++) {
-			if (!uwbConfiguration.anchors.get(i).isMaster()) {
-				double distance= uwbConfiguration.anchors.get(i).getDistance();
-				if(distance!=0)
-				{
-					double x1= uwbConfiguration.anchors.get(i).getLocation().getX();
-					double x2= uwbConfiguration.anchors.get(masterIndex).getLocation().getX();
-					double y1= uwbConfiguration.anchors.get(i).getLocation().getY();
-					double y2= uwbConfiguration.anchors.get(masterIndex).getLocation().getY();
-					double pixeldistance=Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2));
-					uwbConfiguration.scale=pixeldistance/distance;
-				}
-			}
-		}
-		if(uwbConfiguration.scale<=0)
-		{
-			uwbConfiguration.scale=0;
-		}
-	}
-
-	public double pixelsToMeters(double pixeldistance) {
-		return pixeldistance/ uwbConfiguration.scale;
-	}
-	public double metersToPixels(double meters)
-	{
-		return meters* uwbConfiguration.scale;
-	}
-	public double scaledPixelsToRealPixels(double pixels)
-	{
-		return pixels/uwbConfiguration.imageScale;
-	}
-	public void consolePrint(String text)
-	{
-	    String originalText=jsonTextField.getText();
-        if(originalText.length()>1000)
-        {
-            originalText= originalText.substring(0,1000);
-        }
-		jsonTextField.setText(text+"\n" +originalText);
-	}
 }

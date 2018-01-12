@@ -9,8 +9,7 @@ public class App {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(1920, 1080);
 		
-		frame.setExtendedState(JFrame.MAXIMIZED_BOTH); 
-		
+		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		
 		frame.add(new Floorplan(frame));
 		frame.setVisible(true);

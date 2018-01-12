@@ -10,17 +10,22 @@ import java.util.ArrayList;
 public class SimulatorThread extends Thread{
 
 
-    boolean upPressed=false;
-    boolean downPressed=false;
-    boolean leftPressed=false;
-    boolean rightPressed=false;
-    Simulator simulator;
-    Point location;
-    SocketConnection con = new SocketConnection();
-    public SimulatorThread(Simulator simulator,Point location) {
+    private boolean upPressed=false;
+    private boolean downPressed=false;
+    private boolean leftPressed=false;
+    private boolean rightPressed=false;
+    private Floorplan floorplan;
+    private Simulator simulator;
+    private UWBUtils uwbUtils;
+    private UWBConfiguration uwbConfiguration;
+    private Point location;
+    public SocketConnection con = new SocketConnection();
+    public SimulatorThread(Simulator simulator, Floorplan floorplan, UWBConfiguration uwbConfiguration, UWBUtils uwbUtils, Point location) {
         this.simulator=simulator;
         this.location=location;
-
+        this.floorplan=floorplan;
+        this.uwbConfiguration=uwbConfiguration;
+        this.uwbUtils=uwbUtils;
     }
 
     public void run()
@@ -29,8 +34,8 @@ public class SimulatorThread extends Thread{
         while(simulator.isOn())
         {
 
-            simulator.floorplan.requestFocusInWindow();
-            simulator.floorplan.setFocusable(true);
+            floorplan.requestFocusInWindow();
+            floorplan.setFocusable(true);
             if(rightPressed)
             {
                 location.setLocation(location.getX()+15,location.getY());
@@ -47,9 +52,8 @@ public class SimulatorThread extends Thread{
             {
                 location.setLocation(location.getX(),location.getY()+15);
             }
-            simulator.floorplan.updateGui();
-            ArrayList<Anchor> anchors = simulator.floorplan.uwbConfiguration.anchors;
-            ArrayList<RangingData> rangingData = new ArrayList<>();
+            floorplan.updateGui();
+            ArrayList<Anchor> anchors = uwbConfiguration.anchors;
             double metersDistance[]=new double[anchors.size()];
             for (int i = 0; i < anchors.size(); i++) {
                 if(!anchors.get(i).isFake()) {
@@ -58,9 +62,9 @@ public class SimulatorThread extends Thread{
                     double y1 = anchors.get(i).getLocation().getY();
                     double y2 = location.getY();
                     double pixeldistance = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-                    metersDistance[i] = simulator.floorplan.pixelsToMeters(pixeldistance);
+                    metersDistance[i] = uwbUtils.pixelsToMeters(pixeldistance);
 
-                    simulator.floorplan.triangulation.dataToTag(anchors.get(i).getName(), "AAA1", metersDistance[i]);
+                    uwbUtils.triangulation.dataToTag(anchors.get(i).getName(), "AAA1", metersDistance[i]);
                 }
             }
             if(counter%5==0)

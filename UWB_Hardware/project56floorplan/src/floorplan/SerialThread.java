@@ -5,6 +5,7 @@ package floorplan;
  */
 public class SerialThread extends Thread{
     private final Floorplan floorplan;
+    private UWBUtils uwbUtils;
     String com;
     private boolean kill;
 
@@ -12,6 +13,7 @@ public class SerialThread extends Thread{
     {
         com = text;
         this.floorplan=floorplan;
+        uwbUtils=floorplan.uwbUtils;
     }
     public void run()
     {
@@ -22,8 +24,8 @@ public class SerialThread extends Thread{
             con.connect();
         }
         if(floorplan.displaySerial.isSelected()) {
-            if (floorplan.triangulation == null) {
-                floorplan.triangulation = new Triangulation(floorplan.uwbConfiguration);
+            if (uwbUtils.triangulation == null) {
+                uwbUtils.triangulation = new Triangulation(floorplan.uwbConfiguration);
             }
         }
         String input="";
@@ -41,9 +43,9 @@ public class SerialThread extends Thread{
                         con.sendString(input);
                     }
                     System.out.println(input);
-                    floorplan.consolePrint(input);
+                    uwbUtils.consolePrint(input);
                     if(floorplan.displaySerial.isSelected()) {
-                        floorplan.triangulation.calculateFromJson(input);
+                        uwbUtils.triangulation.calculateFromJson(input);
                     }
                     input="";
 
