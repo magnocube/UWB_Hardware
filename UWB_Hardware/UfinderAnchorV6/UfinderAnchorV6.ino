@@ -39,10 +39,10 @@ void newRange() {
   Serial.print("\t other: "); Serial.print(DW1000Ranging.lastRange); Serial.print(" m");
   Serial.print("\t RX power: "); Serial.print(DW1000Ranging.getDistantDevice()->getRXPower()); Serial.println(" dBm");*/
   Serial.print("{");
-  Serial.print("\"anchor\":\"FFF0\",\"tag\":\"TIJGER\",\"distance\":\"");
+  Serial.print("\"anchor\":\"FFF0\",\"tag\":\"AAA0\",\"distance\":\"");
   Serial.print(abs(DW1000Ranging.getDistantDevice()->getRange()-0.40));
   Serial.print("\",");
-  Serial.print("\"anchor2\":\"FFF1\",\"tag2\":\"TIJGER\",\"distance2\":\"");
+  Serial.print("\"anchor2\":\"FFF1\",\"tag2\":\"AAA0\",\"distance2\":\"");
   Serial.print(abs(DW1000Ranging.lastRange));
   Serial.println("\" }");
 }
